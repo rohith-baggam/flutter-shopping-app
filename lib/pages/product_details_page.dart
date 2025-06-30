@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shopping_app/provider/cart_provider.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   final Map<String, Object> product;
@@ -9,6 +11,50 @@ class ProductDetailsPage extends StatefulWidget {
 }
 
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
+  bool isProductExistInCart(int selectedSize) {
+    final cartItem = Provider.of<CartProvider>(context, listen: false).cart;
+    for (int i = 0; i < cartItem.length; i++) {
+      if (widget.product['title'].toString() ==
+              cartItem[i]['title'].toString() &&
+          selectedSize.toInt() == cartItem[i]['sizes'] as int) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void onTapAddToCart() {
+    if (selectedSize != -1) {
+      if (isProductExistInCart(selectedSize)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Product already exists in Cart"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        Provider.of<CartProvider>(context, listen: false).addProduct({
+          "title": widget.product['title'],
+          "price": widget.product['price'],
+          "company": widget.product['company'],
+          "sizes": selectedSize,
+          "imageUrl": widget.product['imageUrl'],
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Product Added to cart"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please select a size")));
+    }
+  }
+
   static int selectedSize = -1;
   @override
   Widget build(BuildContext context) {
@@ -46,13 +92,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   child: ListView.builder(
                     itemCount: (widget.product['sizes'] as List<int>).length,
                     itemBuilder: (context, index) {
-                      print('context');
                       final size =
                           (widget.product['sizes'] as List<int>)[index];
 
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: GestureDetector(
+                          onDoubleTap: () {
+                            setState(() {
+                              selectedSize = -1;
+                            });
+                          },
                           onTap: () => {
                             setState(() {
                               selectedSize =
@@ -75,7 +125,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      onTapAddToCart();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       minimumSize: Size(double.infinity, 50),
