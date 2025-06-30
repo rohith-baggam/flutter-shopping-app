@@ -7,7 +7,11 @@ class CartPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartItems = Provider.of<CartProvider>(context).cart;
+    // This is using Provider
+    // final cartItems = Provider.of<CartProvider>(context).cart;
+    // This is getting Provider from context
+    // This helps as shortcut code and also make less changes when we are not replacing with different Provider
+    final cartItems = context.watch<CartProvider>().cart;
     return cartItems.isEmpty
         ? Center(
             child: Text(
@@ -61,10 +65,9 @@ class CartPage extends StatelessWidget {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Provider.of<CartProvider>(
-                                    context,
-                                    listen: false,
-                                  ).removeProduct(cartItem);
+                                  context.read<CartProvider>().removeProduct(
+                                    cartItem,
+                                  );
                                   Navigator.of(context).pop();
                                 },
                                 child: Text(
